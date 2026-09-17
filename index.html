@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cassino dos Emojis 🎰</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      user-select: none;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at center, #7a0c00 0%, #3d0300 70%, #170000 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      overflow-x: hidden;
+      color: #fff;
+    }
+
+    /* Container Principal */
+    .slot-machine {
+      background: linear-gradient(145deg, #d83a00, #961200);
+      border: 6px solid #ffcc00;
+      border-radius: 28px;
+      padding: 30px 24px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 0 35px rgba(255, 120, 0, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.6);
+      text-align: center;
+      position: relative;
+    }
+
+    .machine-header {
+      margin-bottom: 20px;
+    }
+
+    .machine-title {
+      font-size: 1.8rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #ffe600;
+      text-shadow: 0 2px 10px rgba(255, 77, 0, 0.8), 0 0 20px rgba(255, 230, 0, 0.6);
+    }
+
+    /* Placar de Saldo e Apostas */
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      background: rgba(30, 0, 0, 0.7);
+      border: 2px solid #ff8800;
+      border-radius: 14px;
+      padding: 10px 16px;
+      margin-bottom: 24px;
+    }
+
+    .hud-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .hud-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: #ffb380;
+      font-weight: 700;
+    }
+
+    .hud-value {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #ffe853;
+      text-shadow: 0 0 8px rgba(255, 200, 0, 0.5);
+    }
+
+    /* Área dos Rolos (Reels) */
+    .reels-container {
+      background: linear-gradient(to bottom, #1a0000, #330500, #1a0000);
+      border: 5px solid #ffaa00;
+      border-radius: 18px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 12px;
+      height: 140px;
+      box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.95);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .reel {
+      width: 100px;
+      height: 110px;
+      background: linear-gradient(to bottom, #fff8e7 0%, #ffffff 50%, #fff8e7 100%);
+      border-radius: 12px;
+      border: 3px solid #ff5500;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 3.8rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 8px 12px rgba(0, 0, 0, 0.3), inset 0 -8px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .reel-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.1s ease-out;
+    }
+
+    .spinning {
+      filter: blur(3px);
+      animation: blurSpin 0.12s linear infinite;
+    }
+
+    @keyframes blurSpin {
+      0% { transform: translateY(-10px); }
+      50% { transform: translateY(10px); }
+      100% { transform: translateY(-10px); }
+    }
+
+    /* Barra de Notificação */
+    .message-banner {
+      min-height: 44px;
+      margin: 18px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #ffffff;
+      border-radius: 10px;
+      padding: 6px 12px;
+      background: rgba(0, 0, 0, 0.4);
+      transition: all 0.3s;
+    }
+
+    /* Controles de Aposta */
+    .bet-controls {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .bet-btn {
+      background: #ff7700;
+      border: 2px solid #ffcc00;
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-weight: 800;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: transform 0.1s, background 0.2s;
+    }
+
+    .bet-btn:hover {
+      background: #ff9900;
+    }
+
+    .bet-btn.active {
+      background: #ffe600;
+      color: #7a0c00;
+      border-color: #fff;
+      transform: scale(1.06);
+    }
+
+    /* Botão Girar */
+    .spin-btn {
+      width: 100%;
+      background: linear-gradient(to bottom, #ffe600 0%, #ff8c00 60%, #e63900 100%);
+      border: none;
+      border-bottom: 6px solid #991b00;
+      border-radius: 16px;
+      padding: 16px;
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      cursor: pointer;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 8px 20px rgba(255, 90, 0, 0.5);
+      transition: transform 0.1s, filter 0.2s;
+    }
+
+    .spin-btn:hover:not(:disabled) {
+      filter: brightness(1.1);
+    }
+
+    .spin-btn:active:not(:disabled) {
+      transform: translateY(4px);
+      border-bottom-width: 2px;
+    }
+
+    .spin-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      filter: grayscale(0.5);
+    }
+
+    /* Animação de Vitória */
+    .win-state {
+      animation: winGlow 0.8s ease-in-out infinite alternate;
+    }
+
+    @keyframes winGlow {
+      from { box-shadow: 0 0 25px #ffe600, 0 0 50px #ff3b00; }
+      to { box-shadow: 0 0 50px #ffe600, 0 0 80px #ff8800; }
+    }
+
+    /* Animação de Derrota */
+    .loss-shake {
+      animation: shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-3px, 0, 0); }
+      20%, 80% { transform: translate3d(5px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+      40%, 60% { transform: translate3d(6px, 0, 0); }
+    }
+
+    /* Canvas para Confetes */
+    #confetti-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 99;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="slot-machine" id="machine">
+    <div class="machine-header">
+      <div class="machine-title">🔥 Emoji Vegas 🔥</div>
+    </div>
+
+    <!-- HUD de Valores -->
+    <div class="hud">
+      <div class="hud-box">
+        <span class="hud-label">Saldo</span>
+        <span class="hud-value" id="balance-val">🪙 1000</span>
+      </div>
+      <div class="hud-box">
+        <span class="hud-label">Aposta</span>
+        <span class="hud-value" id="bet-val">🪙 25</span>
+      </div>
+      <div class="hud-box">
+        <span class="hud-label">Último Ganho</span>
+        <span class="hud-value" id="last-win-val">🪙 0</span>
+      </div>
+    </div>
+
+    <!-- Bobinas / Roletas -->
+    <div class="reels-container" id="reels-box">
+      <div class="reel"><span class="reel-content" id="reel-1">🎰</span></div>
+      <div class="reel"><span class="reel-content" id="reel-2">🎰</span></div>
+      <div class="reel"><span class="reel-content" id="reel-3">🎰</span></div>
+    </div>
+
+    <!-- Mensagem de Feedback -->
+    <div class="message-banner" id="message-banner">Faça sua aposta e boa sorte!</div>
+
+    <!-- Seleção de Aposta -->
+    <div class="bet-controls">
+      <button class="bet-btn" onclick="setBet(10)">10</button>
+      <button class="bet-btn active" onclick="setBet(25)">25</button>
+      <button class="bet-btn" onclick="setBet(50)">50</button>
+      <button class="bet-btn" onclick="setBet(100)">100</button>
+      <button class="bet-btn" onclick="setBet('max')">MAX</button>
+    </div>
+
+    <!-- Ação de Girar -->
+    <button class="spin-btn" id="spin-btn" onclick="spin()">Girar 🎲</button>
+  </div>
+
+  <script>
+    // Emojis e multiplicadores
+    const EMOJIS = ['🍒', '🍋', '🍇', '⭐', '🔔', '💎', '7️⃣', '🔥'];
+
+    let balance = 1000;
+    let currentBet = 25;
+    let isSpinning = false;
+
+    // Síntese de Áudio nativa (Web Audio API)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playTone(freq, type = 'sine', duration = 0.1, delay = 0) {
+      setTimeout(() => {
+        try {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + duration);
+        } catch(e) {}
+      }, delay * 1000);
+    }
+
+    function playSpinClick() {
+      playTone(280 + Math.random() * 80, 'triangle', 0.05);
+    }
+
+    function playWinSound(isJackpot) {
+      if (isJackpot) {
+        [523, 659, 783, 1046, 1318].forEach((f, i) => playTone(f, 'square', 0.25, i * 0.12));
+      } else {
+        [440, 554, 659].forEach((f, i) => playTone(f, 'sine', 0.18, i * 0.1));
+      }
+    }
+
+    function playLossSound() {
+      [240, 200, 160].forEach((f, i) => playTone(f, 'sawtooth', 0.18, i * 0.12));
+    }
+
+    // Configuração de aposta
+    function setBet(amount) {
+      if (isSpinning) return;
+      if (amount === 'max') {
+        currentBet = balance > 0 ? balance : 10;
+      } else {
+        currentBet = amount;
+      }
+      document.getElementById('bet-val').innerText = `🪙 ${currentBet}`;
+      
+      document.querySelectorAll('.bet-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.innerText === String(amount) || (amount === 'max' && btn.innerText === 'MAX')) {
+          btn.classList.add('active');
+        }
+      });
+    }
+
+    // Mecânica de Giro
+    function spin() {
+      if (isSpinning) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      if (balance < currentBet) {
+        setMessage('Saldo insuficiente! Fichas recarregadas (+500)', '#ffcc00');
+        balance += 500;
+        document.getElementById('balance-val').innerText = `🪙 ${balance}`;
+        return;
+      }
+
+      // Debita aposta
+      balance -= currentBet;
+      document.getElementById('balance-val').innerText = `🪙 ${balance}`;
+      isSpinning = true;
+
+      // Reseta estados visuais
+      const machine = document.getElementById('machine');
+      machine.classList.remove('win-state', 'loss-shake');
+      setMessage('Girando...', '#ffe600');
+
+      const spinBtn = document.getElementById('spin-btn');
+      spinBtn.disabled = true;
+
+      const reelEls = [
+        document.getElementById('reel-1'),
+        document.getElementById('reel-2'),
+        document.getElementById('reel-3')
+      ];
+
+      reelEls.forEach(r => r.classList.add('spinning'));
+
+      // Efeito sonoro contínuo durante o giro
+      const spinInterval = setInterval(playSpinClick, 90);
+
+      // Sorteio dos emojis finais
+      const finalEmojis = [
+        EMOJIS[Math.floor(Math.random() * EMOJIS.length)],
+        EMOJIS[Math.floor(Math.random() * EMOJIS.length)],
+        EMOJIS[Math.floor(Math.random() * EMOJIS.length)]
+      ];
+
+      // Parada gradual de cada carretel
+      reelEls.forEach((reel, index) => {
+        const stopTime = 1000 + (index * 450); // Delay progressivo
+        setTimeout(() => {
+          reel.classList.remove('spinning');
+          reel.innerText = finalEmojis[index];
+          playTone(400 + (index * 120), 'square', 0.1);
+
+          // Quando o último parar, avalia resultado
+          if (index === 2) {
+            clearInterval(spinInterval);
+            evaluateResult(finalEmojis);
+            spinBtn.disabled = false;
+            isSpinning = false;
+          }
+        }, stopTime);
+      });
+    }
+
+    // Avaliação do Resultado
+    function evaluateResult([r1, r2, r3]) {
+      const machine = document.getElementById('machine');
+      const lastWinEl = document.getElementById('last-win-val');
+
+      if (r1 === r2 && r2 === r3) {
+        // JACKPOT (3 iguais)
+        const multiplier = r1 === '7️⃣' || r1 === '💎' ? 10 : 5;
+        const winAmount = currentBet * multiplier;
+        balance += winAmount;
+        lastWinEl.innerText = `🪙 ${winAmount}`;
+        document.getElementById('balance-val').innerText = `🪙 ${balance}`;
+
+        machine.classList.add('win-state');
+        setMessage(`🎉 JACKPOT! GANHOU 🪙 ${winAmount} (${multiplier}x)!`, '#ffe600');
+        playWinSound(true);
+        triggerConfetti();
+
+      } else if (r1 === r2 || r2 === r3 || r1 === r3) {
+        // PAR (2 iguais)
+        const winAmount = Math.floor(currentBet * 1.5);
+        balance += winAmount;
+        lastWinEl.innerText = `🪙 ${winAmount}`;
+        document.getElementById('balance-val').innerText = `🪙 ${balance}`;
+
+        machine.classList.add('win-state');
+        setMessage(`✨ PAR DE EMOJIS! GANHOU 🪙 ${winAmount}!`, '#ffb300');
+        playWinSound(false);
+
+      } else {
+        // DERROTA
+        lastWinEl.innerText = `🪙 0`;
+        machine.classList.add('loss-shake');
+        setMessage('Não foi dessa vez! Tente novamente 😢', '#ff6666');
+        playLossSound();
+      }
+    }
+
+    function setMessage(text, color) {
+      const banner = document.getElementById('message-banner');
+      banner.innerText = text;
+      banner.style.color = color;
+    }
+
+    // Confetes realistas em Canvas
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    let confetti = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function triggerConfetti() {
+      confetti = [];
+      const colors = ['#ffe600', '#ff8c00', '#ff3b00', '#ffffff', '#ffd700'];
+      for (let i = 0; i < 90; i++) {
+        confetti.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          vx: (Math.random() - 0.5) * 14,
+          vy: (Math.random() - 0.7) * 16,
+          size: Math.random() * 8 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          gravity: 0.35,
+          alpha: 1
+        });
+      }
+      animateConfetti();
+    }
+
+    function animateConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      confetti.forEach((p, idx) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += p.gravity;
+        p.alpha -= 0.012;
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = Math.max(p.alpha, 0);
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+      });
+      confetti = confetti.filter(p => p.alpha > 0);
+      if (confetti.length > 0) {
+        requestAnimationFrame(animateConfetti);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+  </script>
+</body>
+</html>
